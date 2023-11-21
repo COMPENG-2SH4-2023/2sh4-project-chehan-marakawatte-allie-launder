@@ -20,14 +20,18 @@ Player::~Player()
 void Player::getPlayerPos(objPos &returnPos)
 {
     returnPos.setObjPos(playerPos.x, playerPos.y, playerPos.symbol);
-    // return the reference to the playerPos arrray list
+    // return the reference to the playerPos array list
 }
 
 void Player::updatePlayerDir()
 {
+
     char input = mainGameMechsRef->getInput();
     // PPA3 input processing logic   
     switch(input) { //switch out input with game mechanics (iteration 1b), 25:00 in vid, fixme
+        case ' ':  // exit
+            mainGameMechsRef->setExitTrue();
+            break;
         case 'a':
             if (myDir != RIGHT) {
                 myDir = LEFT;
@@ -56,5 +60,29 @@ void Player::updatePlayerDir()
 void Player::movePlayer()
 {
     // PPA3 Finite State Machine logic
+    if (myDir == RIGHT) {
+        playerPos.x = playerPos.x+1;
+        if (playerPos.x == mainGameMechsRef->getBoardSizeX()-1) {
+            playerPos.x = 1;
+        }
+    }
+    else if (myDir == LEFT) {
+        playerPos.x = playerPos.x-1;
+        if (playerPos.x == 0) {
+            playerPos.x = mainGameMechsRef->getBoardSizeX()-2;
+        }
+    }
+    else if (myDir == UP) {
+        playerPos.y = playerPos.y-1;
+        if (playerPos.y == 0) {
+            playerPos.y = mainGameMechsRef->getBoardSizeY()-2;
+        }
+    }
+    else if (myDir == DOWN) {
+        playerPos.y = playerPos.y+1;
+        if (playerPos.y == mainGameMechsRef->getBoardSizeY()-1) {
+            playerPos.y = 1;
+        }
+    }
 }
 

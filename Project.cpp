@@ -9,7 +9,7 @@ using namespace std;
 #define DELAY_CONST 100000
 
 //bool exitFlag;
-objPos border[56];
+objPos border[100];
 GameMechs* myGM;
 Player* myPlayer;
 
@@ -47,27 +47,28 @@ void Initialize(void)
 
     int i,j, index=0;
     //objPos border[56]; initalized globally
-    for (i=0;i<10;i++) { //fixme replace 10 with boardsizeX maybe?
-        for (j=0;j<20;j++) { 
-            if ((i==0) || (i==9) || (j==0) || (j==19)) {
+    myGM = new GameMechs(30, 15); //fixme , are these real dimension?
+    myPlayer = new Player(myGM);
+
+    for (i=0;i<myGM->getBoardSizeY();i++) { //fixme replace 10 with boardsizeX maybe?
+        for (j=0;j<myGM->getBoardSizeX();j++) { 
+            if ((i==0) || (i==(myGM->getBoardSizeY()-1)) || (j==0) || (j==(myGM->getBoardSizeX()-1))) {
                 border[index].setObjPos(j, i, '#'); //border[index] = objPos{j, i, '#'};
                 index++;
             }
         }
     }
-
-    myGM = new GameMechs(26, 13); //fixme , are these real dimension?
-    myPlayer = new Player(myGM);
 }
 
 void GetInput(void)
 {
-
+    //myGM.setInput(MacUILib_getChar());
 }
 
 void RunLogic(void)
 {
     myPlayer->updatePlayerDir();
+    myPlayer->movePlayer();
 }
 
 void DrawScreen(void)
@@ -76,17 +77,24 @@ void DrawScreen(void)
     objPos tempPos;
     myPlayer->getPlayerPos(tempPos);
     int i, j, k=0;
-    for (i=0;i<10;i++) {
-        for (j=0;j<20;j++) { 
-            for(k=0; k<56; k++) {
+    for (i=0;i<myGM->getBoardSizeY();i++) {
+        for (j=0;j<myGM->getBoardSizeX();j++) { 
+            for(k=0; k<(2*myGM->getBoardSizeY()+2*myGM->getBoardSizeX()-4); k++) {
                 if (border[k].x==j && border[k].y==i) {
                     MacUILib_printf("%c", border[k].getSymbol()); // add conversion specifier with MacUILib!!!! or else it won't work
                     break;                   
                 }
             }
-            if (i!=0 && i!=9) {
-                if (j!=0 && j!=19) {
-                    MacUILib_printf(" ");
+            if (i!=0 && i!=(myGM->getBoardSizeY()-1)) {
+                if (j!=0 && j!=(myGM->getBoardSizeX()-1)) {
+                    objPos foundPlayer;
+                    myPlayer->getPlayerPos(foundPlayer);
+                    if (i==foundPlayer.y && j==foundPlayer.x) {
+                        MacUILib_printf("%c", foundPlayer.getSymbol());
+                    }
+                    else {
+                        MacUILib_printf(" ");
+                    }
                 }
             }
         }
