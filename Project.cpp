@@ -133,7 +133,7 @@ void CleanUp(void)
 
     if (myGM->getLoseFlagStatus()) //this flag is different from exit flag and only is processed when suicide occurs
     {
-        cout << "YOU LOSE!!!!" << endl; 
+        MacUILib_printf("YOU LOSE!!!!\n");
     }
 
     MacUILib_uninit();
