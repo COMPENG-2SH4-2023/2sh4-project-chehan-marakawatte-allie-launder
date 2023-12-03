@@ -1,15 +1,15 @@
 #include <iostream>
+#include <ctime>
 #include "MacUILib.h"
 #include "objPos.h"
 #include "GameMechs.h"
 #include "Player.h"
+#include "objPosArrayList.h"
 
 using namespace std;
 
 #define DELAY_CONST 100000
 
-//bool exitFlag;
-objPos border[100];
 GameMechs* myGM;
 Player* myPlayer;
 
@@ -27,7 +27,7 @@ int main(void)
 
     Initialize();
 
-    while(myGM->getExitFlagStatus() == false)  
+    while(myGM->getExitFlagStatus() == false) //checks exit flag method
     {
         GetInput();
         RunLogic();
@@ -45,63 +45,80 @@ void Initialize(void)
     MacUILib_init();
     MacUILib_clearScreen();
 
-    int i,j, index=0;
-    //objPos border[56]; initalized globally
-    myGM = new GameMechs(30, 15); //fixme , are these real dimension?
-    myPlayer = new Player(myGM);
+    myGM = new GameMechs(30, 15); //game board initialization
+    myPlayer = new Player(myGM); //player object initialization
+    objPosArrayList* playerBody = myPlayer->getPlayerPos(); //player position stored in type objPosArrayList
+    myGM->generateFood(playerBody); //generates food randomly on gameboard
 
-    for (i=0;i<myGM->getBoardSizeY();i++) { //fixme replace 10 with boardsizeX maybe?
-        for (j=0;j<myGM->getBoardSizeX();j++) { 
-            if ((i==0) || (i==(myGM->getBoardSizeY()-1)) || (j==0) || (j==(myGM->getBoardSizeX()-1))) {
-                border[index].setObjPos(j, i, '#'); //border[index] = objPos{j, i, '#'};
-                index++;
-            }
-        }
-    }
 }
 
 void GetInput(void)
 {
-    //myGM.setInput(MacUILib_getChar());
+    if (MacUILib_hasChar() != 0) {
+        myGM->setInput(MacUILib_getChar()); //records input into myGM
+    }
 }
 
 void RunLogic(void)
 {
-    myPlayer->updatePlayerDir();
-    myPlayer->movePlayer();
+    myPlayer->updatePlayerDir(); //updates player movement direction
+    myPlayer->movePlayer(); //moves the player in updated direction
 }
 
 void DrawScreen(void)
 {
     MacUILib_clearScreen();
-    objPos tempPos;
-    myPlayer->getPlayerPos(tempPos);
+
+    bool drawn; //ensures an extra space is not printed when player is in a row
+
+    objPosArrayList* playerBody = myPlayer->getPlayerPos(); //player position stored in type objPosArrayList
+    objPos tempBody; //temporary variable holding snake body with type 'objPos'
+
+
+
+    objPos tempFood;
+    myGM->getFoodPos(tempFood);
+
     int i, j, k=0;
     for (i=0;i<myGM->getBoardSizeY();i++) {
-        for (j=0;j<myGM->getBoardSizeX();j++) { 
-            for(k=0; k<(2*myGM->getBoardSizeY()+2*myGM->getBoardSizeX()-4); k++) {
-                if (border[k].x==j && border[k].y==i) {
-                    MacUILib_printf("%c", border[k].getSymbol()); // add conversion specifier with MacUILib!!!! or else it won't work
-                    break;                   
+
+        for (j=0;j<myGM->getBoardSizeX();j++) {
+
+            drawn = false; 
+
+            for (int k = 0; k < playerBody->getSize(); k++)
+            {
+                playerBody->getElement(tempBody, k);
+                if (tempBody.x == j && tempBody.y == i)
+                {
+                    MacUILib_printf("%c", tempBody.symbol); //prints player symbol if the index being iterated through equals player index
+                    drawn = true;
+                    break;
                 }
             }
-            if (i!=0 && i!=(myGM->getBoardSizeY()-1)) {
+
+            if (drawn) continue;
+            
+            if (i!=0 && i!=(myGM->getBoardSizeY()-1)) { //if statement prints entire border and food symbol
                 if (j!=0 && j!=(myGM->getBoardSizeX()-1)) {
-                    objPos foundPlayer;
-                    myPlayer->getPlayerPos(foundPlayer);
-                    if (i==foundPlayer.y && j==foundPlayer.x) {
-                        MacUILib_printf("%c", foundPlayer.getSymbol());
+                    if (i==tempFood.y && j==tempFood.x) {
+                        MacUILib_printf("%c", tempFood.getSymbol()); //prints the food symbol if its position doesn't overlap with border
                     }
                     else {
                         MacUILib_printf(" ");
                     }
                 }
+                else {
+                    MacUILib_printf("#");
+                }
+            }
+            else {
+                MacUILib_printf("#");
             }
         }
         MacUILib_printf("\n");
     }
-    MacUILib_printf("Board Size: %dx%d, Player Position: <%d,%d> + %c\n", myGM->getBoardSizeX(), myGM->getBoardSizeY(), tempPos.x, tempPos.y, tempPos.symbol);
-
+    MacUILib_printf("Score: %d", myGM->getScore());
 }
 
 void LoopDelay(void)
@@ -113,6 +130,11 @@ void LoopDelay(void)
 void CleanUp(void)
 {
     MacUILib_clearScreen();    
-  
+
+    if (myGM->getLoseFlagStatus()) //this flag is different from exit flag and only is processed when suicide occurs
+    {
+        cout << "YOU LOSE!!!!" << endl; 
+    }
+
     MacUILib_uninit();
 }

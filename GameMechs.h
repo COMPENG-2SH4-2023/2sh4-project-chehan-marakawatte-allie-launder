@@ -24,15 +24,24 @@ class GameMechs
         int score;
         bool loseFlag;
         
+        objPos foodPos;
+
         int boardSizeX;
         int boardSizeY;
 
     public:
         GameMechs();
         GameMechs(int boardX, int boardY);
+
+        ~GameMechs();
         
         bool getExitFlagStatus();
+        bool getLoseFlagStatus();
+        void setLoseTrue();
         void setExitTrue();
+
+        int getScore();
+        void incrementScore();
 
         char getInput();
         void setInput(char this_input);
@@ -40,6 +49,9 @@ class GameMechs
 
         int getBoardSizeX();
         int getBoardSizeY();
+
+        void generateFood(objPosArrayList* blockOff);
+        void getFoodPos(objPos &returnPos);
       
 
 };
